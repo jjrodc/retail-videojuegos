@@ -8,46 +8,30 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Rutas de prueba
-app.get('/api/test', (req, res) => {
-    res.json({ message: 'API funcionando correctamente' });
+// Importar rutas
+const routes = require('./routes');
+
+// Usar rutas
+app.use('/api', routes);
+
+// Ruta de prueba
+app.get('/health', (req, res) => {
+    res.json({ 
+        status: 'OK', 
+        timestamp: new Date().toISOString(),
+        message: 'API funcionando correctamente' 
+    });
 });
 
-// Ruta para probar PostgreSQL
-app.get('/api/test/postgres', async (req, res) => {
-    try {
-        const pool = require('./config/postgres');
-        const result = await pool.query('SELECT NOW()');
-        res.json({ 
-            success: true, 
-            postgres: 'conectado',
-            timestamp: result.rows[0].now 
-        });
-    } catch (error) {
-        res.status(500).json({ 
-            success: false, 
-            error: error.message 
-        });
-    }
+// Manejo de errores
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).json({ error: 'Error interno del servidor' });
 });
 
-// Ruta para probar MongoDB
-app.get('/api/test/mongodb', async (req, res) => {
-    try {
-        const { getDB } = require('./config/mongodb');
-        const db = getDB();
-        const result = await db.admin().ping();
-        res.json({ 
-            success: true, 
-            mongodb: 'conectado',
-            ping: result 
-        });
-    } catch (error) {
-        res.status(500).json({ 
-            success: false, 
-            error: error.message 
-        });
-    }
+// Ruta no encontrada
+app.use('*', (req, res) => {
+    res.status(404).json({ error: 'Endpoint no encontrado' });
 });
 
 module.exports = app;
