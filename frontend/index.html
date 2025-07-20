@@ -1,112 +1,175 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Retail Videojuegos - Sistema de Gestión</title>
-    <link rel="stylesheet" href="css/style.css">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Game Retail Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-    <div id="app">
-        <!-- Login Page -->
-        <div id="loginPage" class="page active">
-            <div class="login-container">
-                <h1>🎮 Retail Videojuegos</h1>
-                <form id="loginForm">
-                    <div class="form-group">
-                        <label for="username">Usuario:</label>
-                        <input type="text" id="username" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="password">Contraseña:</label>
-                        <input type="password" id="password" required>
-                    </div>
-                    <button type="submit">Iniciar Sesión</button>
-                </form>
-                <div id="loginError" class="error-message"></div>
+    <header>
+        <nav class="navbar">
+            <div class="nav-logo"><a href="/">GAME RETAIL</a></div>
+            <div class="nav-search">
+                <input type="text" placeholder="Buscar por título..." />
             </div>
-        </div>
-
-        <!-- Dashboard Page -->
-        <div id="dashboardPage" class="page">
-            <nav class="navbar">
-                <div class="nav-brand">🎮 Retail Videojuegos</div>
-                <div class="nav-user">
-                    <span id="userName"></span>
-                    <button id="logoutBtn">Cerrar Sesión</button>
-                </div>
-            </nav>
-
-            <div class="container">
-                <div class="sidebar">
-                    <ul class="nav-menu">
-                        <li><a href="#dashboard" class="nav-link active">Dashboard</a></li>
-                        <li><a href="#products" class="nav-link">Productos</a></li>
-                        <li><a href="#inventory" class="nav-link">Inventario</a></li>
-                        <li><a href="#sales" class="nav-link">Ventas</a></li>
-                        <li><a href="#clients" class="nav-link">Clientes</a></li>
-                        <li><a href="#reports" class="nav-link">Reportes</a></li>
-                    </ul>
-                </div>
-
-                <div class="main-content">
-                    <!-- Dashboard Content -->
-                    <div id="dashboardContent" class="content-section active">
-                        <h2>Dashboard</h2>
-                        <div class="stats-grid">
-                            <div class="stat-card">
-                                <h3>Ventas Hoy</h3>
-                                <p id="ventasHoy">0</p>
-                            </div>
-                            <div class="stat-card">
-                                <h3>Ingresos Hoy</h3>
-                                <p id="ingresosHoy">$0.00</p>
-                            </div>
-                            <div class="stat-card">
-                                <h3>Stock Bajo</h3>
-                                <p id="stockBajo">0</p>
-                            </div>
-                            <div class="stat-card">
-                                <h3>Productos Activos</h3>
-                                <p id="productosActivos">0</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Products Content -->
-                    <div id="productsContent" class="content-section">
-                        <h2>Gestión de Productos</h2>
-                        <div class="section-header">
-                            <button id="addProductBtn" class="btn btn-primary">Agregar Producto</button>
-                            <input type="text" id="searchProducts" placeholder="Buscar productos...">
-                        </div>
-                        <div id="productsTable"></div>
-                    </div>
-
-                    <!-- Sales Content -->
-                    <div id="salesContent" class="content-section">
-                        <h2>Punto de Venta</h2>
-                        <div class="pos-container">
-                            <div class="pos-left">
-                                <h3>Productos</h3>
-                                <input type="text" id="searchPOS" placeholder="Buscar producto...">
-                                <div id="posProducts"></div>
-                            </div>
-                            <div class="pos-right">
-                                <h3>Carrito de Compras</h3>
-                                <div id="cartItems"></div>
-                                <div class="cart-total">
-                                    <strong>Total: $<span id="cartTotal">0.00</span></strong>
-                                </div>
-                                <button id="processSale" class="btn btn-success">Procesar Venta</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            <div class="nav-links">
+                <a href="#" data-plataforma="PC">PC</a>
+                <a href="#" data-plataforma="PlayStation 5">PlayStation</a>
+                <a href="#" data-plataforma="Xbox Series X">Xbox</a>
+                <a href="#" data-plataforma="Nintendo Switch">Nintendo</a>
             </div>
+            <div class="nav-usuario" id="nav-usuario-container">
+                <a href="#" id="login-link">Iniciar Sesión</a>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <section class="filtros-container">
+            <select name="ordenar">
+                <option value="">Ordenar por...</option>
+                <option value="precio-asc">Precio: Más bajo a más alto</option>
+                <option value="precio-desc">Precio: Más alto a más bajo</option>
+            </select>
+            <select name="genero">
+                <option value="">Género</option>
+            </select>
+            <select name="plataforma">
+                <option value="">Plataforma</option>
+            </select>
+        </section>
+
+        <div id="tienda-container"></div>
+        <div id="paginacion-container"></div>
+    </main>
+
+    <!-- Modal Login -->
+    <div id="login-modal" class="modal-oculto">
+        <div class="modal-contenido">
+            <span class="cerrar-modal">&times;</span>
+            <h2>Inicia Sesión</h2>
+            <form id="login-form">
+                <input type="text" id="login-username" placeholder="Nombre de Usuario" required />
+                <input type="password" id="login-password" placeholder="Contraseña" required />
+                <button type="submit">Entrar</button>
+                <p id="login-error" class="error-mensaje"></p>
+            </form>
+            <p class="switch-form-link">¿No tienes cuenta? <a href="#" id="show-register-link">Regístrate</a></p>
         </div>
     </div>
 
-    <script src="js/app.js"></script>
+    <!-- Modal Registro -->
+    <div id="register-modal" class="modal-oculto">
+        <div class="modal-contenido">
+            <span class="cerrar-modal">&times;</span>
+            <h2>Crear Cuenta</h2>
+            <form id="register-form">
+                <input type="text" id="register-nombre" placeholder="Nombre Completo" required />
+                <input type="text" id="register-username" placeholder="Nombre de Usuario" required />
+                <input type="password" id="register-password" placeholder="Contraseña" required />
+                <input type="number" id="register-rol_id" placeholder="ID Rol (ej. 3 para cliente)" required />
+                <input type="number" id="register-sucursal_id" placeholder="ID Sucursal (ej. 1)" required />
+                <button type="submit">Registrarse</button>
+                <p id="register-error" class="error-mensaje"></p>
+            </form>
+            <p class="switch-form-link">¿Ya tienes cuenta? <a href="#" id="show-login-link">Inicia Sesión</a></p>
+        </div>
+    </div>
+
+    <script>
+      // Variables DOM
+      const loginModal = document.getElementById('login-modal');
+      const registerModal = document.getElementById('register-modal');
+      const loginLink = document.getElementById('login-link');
+      const showRegisterLink = document.getElementById('show-register-link');
+      const showLoginLink = document.getElementById('show-login-link');
+      const closeModalButtons = document.querySelectorAll('.cerrar-modal');
+
+      // Mostrar/Ocultar modales
+      loginLink.addEventListener('click', e => {
+        e.preventDefault();
+        loginModal.classList.remove('modal-oculto');
+      });
+
+      showRegisterLink.addEventListener('click', e => {
+        e.preventDefault();
+        loginModal.classList.add('modal-oculto');
+        registerModal.classList.remove('modal-oculto');
+      });
+
+      showLoginLink.addEventListener('click', e => {
+        e.preventDefault();
+        registerModal.classList.add('modal-oculto');
+        loginModal.classList.remove('modal-oculto');
+      });
+
+      closeModalButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          loginModal.classList.add('modal-oculto');
+          registerModal.classList.add('modal-oculto');
+        });
+      });
+
+      // Función para login
+      document.getElementById('login-form').addEventListener('submit', async e => {
+        e.preventDefault();
+
+        const username = document.getElementById('login-username').value.trim();
+        const password = document.getElementById('login-password').value;
+
+        try {
+          const res = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password }),
+          });
+
+          const data = await res.json();
+
+          if (res.ok) {
+            alert('Login exitoso. Token: ' + data.token);
+            loginModal.classList.add('modal-oculto');
+            // Aquí puedes guardar el token en localStorage/sessionStorage y cambiar UI
+          } else {
+            document.getElementById('login-error').textContent = data.error || 'Error desconocido';
+          }
+        } catch (error) {
+          document.getElementById('login-error').textContent = 'Error en la conexión';
+        }
+      });
+
+      // Función para registro
+      document.getElementById('register-form').addEventListener('submit', async e => {
+        e.preventDefault();
+
+        const nombre = document.getElementById('register-nombre').value.trim();
+        const username = document.getElementById('register-username').value.trim();
+        const password = document.getElementById('register-password').value;
+        const rol_id = parseInt(document.getElementById('register-rol_id').value, 10);
+        const sucursal_id = parseInt(document.getElementById('register-sucursal_id').value, 10);
+
+        try {
+          const res = await fetch('/api/auth/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nombre, username, password, rol_id, sucursal_id }),
+          });
+
+          const data = await res.json();
+
+          if (res.ok) {
+            alert('Registro exitoso. Ya puedes iniciar sesión.');
+            registerModal.classList.add('modal-oculto');
+            loginModal.classList.remove('modal-oculto');
+          } else {
+            document.getElementById('register-error').textContent = data.error || 'Error desconocido';
+          }
+        } catch (error) {
+          document.getElementById('register-error').textContent = 'Error en la conexión';
+        }
+      });
+    </script>
 </body>
 </html>
