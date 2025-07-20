@@ -5,9 +5,9 @@ const getInventory = async (req, res) => {
         const { sucursal_id } = req.query;
         const userSucursalId = req.user.sucursal_id;
 
-        // Si no es admin, solo puede ver su sucursal
-        const finalSucursalId = req.user.rol_nombre === 'admin' ? 
-            (sucursal_id || userSucursalId) : userSucursalId;
+        const finalSucursalId = req.user.rol_nombre === 'admin'
+            ? (sucursal_id || userSucursalId)
+            : userSucursalId;
 
         const query = `
             SELECT i.*, p.nombre as producto_nombre, p.codigo, p.precio,
@@ -40,7 +40,6 @@ const updateStock = async (req, res) => {
     try {
         const { inventario_id, cantidad, tipo, referencia } = req.body;
 
-        // Validar inventario existe
         const inventoryCheck = await pool.query(
             'SELECT * FROM inventario WHERE id = $1',
             [inventario_id]
@@ -53,7 +52,6 @@ const updateStock = async (req, res) => {
         const currentStock = inventoryCheck.rows[0].stock_actual;
         let newStock;
 
-        // Calcular nuevo stock según tipo de movimiento
         switch (tipo) {
             case 'entrada':
                 newStock = currentStock + cantidad;
@@ -71,13 +69,11 @@ const updateStock = async (req, res) => {
                 return res.status(400).json({ error: 'Tipo de movimiento inválido' });
         }
 
-        // Actualizar stock
         await pool.query(
             'UPDATE inventario SET stock_actual = $1 WHERE id = $2',
             [newStock, inventario_id]
         );
 
-        // Registrar movimiento
         await pool.query(
             'INSERT INTO movimientos_inventario (inventario_id, tipo, cantidad, referencia_id, usuario_id) VALUES ($1, $2, $3, $4, $5)',
             [inventario_id, tipo, cantidad, referencia, req.user.id]
@@ -142,4 +138,8 @@ const getMovimientos = async (req, res) => {
     }
 };
 
-module.exports = { getInventory, updateStock, getMovimientos };
+module.exports = {
+    getInventory,
+    updateStock,
+    getMovimientos
+};

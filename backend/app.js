@@ -1,37 +1,36 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-require('dotenv').config();
+const morgan = require('morgan');
+
+// Importar middleware de autenticación (asumido que tienes uno)
+const { verifyToken } = require('./middleware/auth');
+
+// Importar routers
+const clientsRouter = require('./routes/client.routes');
+const inventoryRouter = require('./routes/inventory.routes');
+const productsRouter = require('./routes/products.routes');
+const salesRouter = require('./routes/sales.routes');
+const reportsRouter = require('./routes/reports.routes');
 
 const app = express();
 
-// Middlewares
 app.use(cors());
+app.use(morgan('dev'));
 app.use(express.json());
 
-// Importar rutas
-const routes = require('./routes');
+// Rutas públicas (por ejemplo auth si tienes)
+app.use('/api/auth', authRouter);
 
-// Usar rutas
-app.use('/api', routes);
+// Rutas protegidas con token
+app.use('/api/clients', verifyToken, clientsRouter);
+app.use('/api/inventory', verifyToken, inventoryRouter);
+app.use('/api/products', verifyToken, productsRouter);
+app.use('/api/sales', verifyToken, salesRouter);
+app.use('/api/reports', verifyToken, reportsRouter);
 
-// Ruta de prueba
-app.get('/health', (req, res) => {
-    res.json({ 
-        status: 'OK', 
-        timestamp: new Date().toISOString(),
-        message: 'API funcionando correctamente' 
-    });
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+  console.log(`Servidor corriendo en puerto ${PORT}`);
 });
-
-// Manejo de errores
-app.use((err, req, res, next) => {
-    console.error(err.stack);
-    res.status(500).json({ error: 'Error interno del servidor' });
-});
-
-// Ruta no encontrada
-app.use('*', (req, res) => {
-    res.status(404).json({ error: 'Endpoint no encontrado' });
-});
-
-module.exports = app;

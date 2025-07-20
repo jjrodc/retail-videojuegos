@@ -3,25 +3,22 @@ const { getDB } = require('../config/mongodb');
 
 const createSale = async (req, res) => {
     const client = await pool.connect();
-    
     try {
         await client.query('BEGIN');
 
         const { cliente_id, productos, metodos_pago, descuento = 0 } = req.body;
-
-        // Generar número de venta
         const numeroVenta = `VTA-${Date.now()}`;
-
-        // Calcular totales
         let subtotal = 0;
         const productosValidos = [];
 
         for (const item of productos) {
             const { producto_id, plataforma_id, cantidad } = item;
 
-            // Verificar stock
             const inventoryCheck = await client.query(
-                'SELECT i.*, p.precio FROM inventario i JOIN productos p ON i.producto_id = p.id WHERE i.producto_id = $1 AND i.plataforma_id = $2 AND i.sucursal_id = $3',
+                `SELECT i.*, p.precio 
+                 FROM inventario i 
+                 JOIN productos p ON i.producto_id = p.id 
+                 WHERE i.producto_id = $1 AND i.plataforma_id = $2 AND i.sucursal_id = $3`,
                 [producto_id, plataforma_id, req.user.sucursal_id]
             );
 
@@ -50,53 +47,46 @@ const createSale = async (req, res) => {
         }
 
         const total = subtotal - descuento;
-
-        // Validar métodos de pago
         const totalPagos = metodos_pago.reduce((sum, pago) => sum + pago.monto, 0);
         if (Math.abs(totalPagos - total) > 0.01) {
             throw new Error('El total de pagos no coincide con el total de la venta');
         }
 
-        // Crear venta
         const ventaResult = await client.query(
-            'INSERT INTO ventas (numero, cliente_id, sucursal_id, usuario_id, subtotal, descuento, total) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
+            `INSERT INTO ventas (numero, cliente_id, sucursal_id, usuario_id, subtotal, descuento, total) 
+             VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
             [numeroVenta, cliente_id, req.user.sucursal_id, req.user.id, subtotal, descuento, total]
         );
-
         const ventaId = ventaResult.rows[0].id;
 
-        // Crear detalles de venta y actualizar inventario
         for (const item of productosValidos) {
-            // Insertar detalle
             await client.query(
-                'INSERT INTO detalle_ventas (venta_id, producto_id, plataforma_id, cantidad, precio_unitario, subtotal) VALUES ($1, $2, $3, $4, $5, $6)',
+                `INSERT INTO detalle_ventas (venta_id, producto_id, plataforma_id, cantidad, precio_unitario, subtotal) 
+                 VALUES ($1, $2, $3, $4, $5, $6)`,
                 [ventaId, item.producto_id, item.plataforma_id, item.cantidad, item.precio_unitario, item.subtotal]
             );
 
-            // Actualizar inventario
             await client.query(
-                'UPDATE inventario SET stock_actual = stock_actual - $1 WHERE id = $2',
+                `UPDATE inventario SET stock_actual = stock_actual - $1 WHERE id = $2`,
                 [item.cantidad, item.inventario_id]
             );
 
-            // Registrar movimiento
             await client.query(
-                'INSERT INTO movimientos_inventario (inventario_id, tipo, cantidad, referencia_id, usuario_id) VALUES ($1, $2, $3, $4, $5)',
-                [item.inventario_id, 'salida', item.cantidad, ventaId, req.user.id]
+                `INSERT INTO movimientos_inventario (inventario_id, tipo, cantidad, referencia_id, usuario_id) 
+                 VALUES ($1, 'salida', $2, $3, $4)`,
+                [item.inventario_id, item.cantidad, ventaId, req.user.id]
             );
         }
 
-        // Registrar métodos de pago
         for (const pago of metodos_pago) {
             await client.query(
-                'INSERT INTO pagos (venta_id, metodo, monto) VALUES ($1, $2, $3)',
+                `INSERT INTO pagos (venta_id, metodo, monto) VALUES ($1, $2, $3)`,
                 [ventaId, pago.metodo, pago.monto]
             );
         }
 
         await client.query('COMMIT');
 
-        // Actualizar historial del cliente en MongoDB
         if (cliente_id) {
             const db = getDB();
             await db.collection('historial_clientes').insertOne({
@@ -142,7 +132,6 @@ const getSales = async (req, res) => {
         const params = [];
         let paramCount = 1;
 
-        // Filtrar por sucursal si no es admin
         if (req.user.rol_nombre !== 'admin') {
             query += ` AND v.sucursal_id = $${paramCount}`;
             params.push(req.user.sucursal_id);
@@ -189,9 +178,12 @@ const getSaleDetail = async (req, res) => {
     try {
         const { id } = req.params;
 
-        // Obtener venta
         const ventaQuery = await pool.query(
-            'SELECT v.*, u.nombre as vendedor_nombre, s.nombre as sucursal_nombre FROM ventas v JOIN usuarios u ON v.usuario_id = u.id JOIN sucursales s ON v.sucursal_id = s.id WHERE v.id = $1',
+            `SELECT v.*, u.nombre as vendedor_nombre, s.nombre as sucursal_nombre 
+             FROM ventas v 
+             JOIN usuarios u ON v.usuario_id = u.id 
+             JOIN sucursales s ON v.sucursal_id = s.id 
+             WHERE v.id = $1`,
             [id]
         );
 
@@ -199,23 +191,23 @@ const getSaleDetail = async (req, res) => {
             return res.status(404).json({ error: 'Venta no encontrada' });
         }
 
-        const venta = ventaQuery.rows[0];
-
-        // Obtener detalles
         const detalleQuery = await pool.query(
-            'SELECT dv.*, p.nombre as producto_nombre, p.codigo, pl.nombre as plataforma_nombre FROM detalle_ventas dv JOIN productos p ON dv.producto_id = p.id JOIN plataformas pl ON dv.plataforma_id = pl.id WHERE dv.venta_id = $1',
+            `SELECT dv.*, p.nombre as producto_nombre, p.codigo, pl.nombre as plataforma_nombre 
+             FROM detalle_ventas dv 
+             JOIN productos p ON dv.producto_id = p.id 
+             JOIN plataformas pl ON dv.plataforma_id = pl.id 
+             WHERE dv.venta_id = $1`,
             [id]
         );
 
-        // Obtener pagos
         const pagosQuery = await pool.query(
-            'SELECT * FROM pagos WHERE venta_id = $1',
+            `SELECT * FROM pagos WHERE venta_id = $1`,
             [id]
         );
 
         res.json({
             success: true,
-            venta,
+            venta: ventaQuery.rows[0],
             detalles: detalleQuery.rows,
             pagos: pagosQuery.rows
         });
@@ -224,4 +216,8 @@ const getSaleDetail = async (req, res) => {
     }
 };
 
-module.exports = { createSale, getSales, getSaleDetail };
+module.exports = {
+    createSale,
+    getSales,
+    getSaleDetail
+};

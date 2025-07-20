@@ -64,12 +64,11 @@ const getAllProducts = async (req, res) => {
 
 const createProduct = async (req, res) => {
     try {
-        const { 
-            codigo, nombre, categoria_id, desarrollador_id, precio, 
-            plataformas, descripcion, especificaciones, imagenes 
+        const {
+            codigo, nombre, categoria_id, desarrollador_id, precio,
+            plataformas, descripcion, especificaciones, imagenes
         } = req.body;
 
-        // Verificar si el código ya existe
         const existingProduct = await pool.query(
             'SELECT id FROM productos WHERE codigo = $1',
             [codigo]
@@ -79,7 +78,6 @@ const createProduct = async (req, res) => {
             return res.status(400).json({ error: 'El código del producto ya existe' });
         }
 
-        // Crear producto en PostgreSQL
         const newProduct = await pool.query(
             'INSERT INTO productos (codigo, nombre, categoria_id, desarrollador_id, precio) VALUES ($1, $2, $3, $4, $5) RETURNING *',
             [codigo, nombre, categoria_id, desarrollador_id, precio]
@@ -87,9 +85,8 @@ const createProduct = async (req, res) => {
 
         const productId = newProduct.rows[0].id;
 
-        // Asociar plataformas
         if (plataformas && plataformas.length > 0) {
-            const platformQueries = plataformas.map(plataforma_id => 
+            const platformQueries = plataformas.map(plataforma_id =>
                 pool.query(
                     'INSERT INTO productos_plataformas (producto_id, plataforma_id) VALUES ($1, $2)',
                     [productId, plataforma_id]
@@ -98,7 +95,6 @@ const createProduct = async (req, res) => {
             await Promise.all(platformQueries);
         }
 
-        // Guardar detalles en MongoDB
         const db = getDB();
         await db.collection('productos_detalle').insertOne({
             producto_id: productId,
@@ -121,9 +117,11 @@ const createProduct = async (req, res) => {
 const updateProduct = async (req, res) => {
     try {
         const { id } = req.params;
-        const { nombre, categoria_id, desarrollador_id, precio, plataformas, descripcion, especificaciones, imagenes } = req.body;
+        const {
+            nombre, categoria_id, desarrollador_id, precio,
+            plataformas, descripcion, especificaciones, imagenes
+        } = req.body;
 
-        // Actualizar en PostgreSQL
         const updatedProduct = await pool.query(
             'UPDATE productos SET nombre = $1, categoria_id = $2, desarrollador_id = $3, precio = $4 WHERE id = $5 RETURNING *',
             [nombre, categoria_id, desarrollador_id, precio, id]
@@ -133,12 +131,11 @@ const updateProduct = async (req, res) => {
             return res.status(404).json({ error: 'Producto no encontrado' });
         }
 
-        // Actualizar plataformas
         if (plataformas) {
             await pool.query('DELETE FROM productos_plataformas WHERE producto_id = $1', [id]);
-            
+
             if (plataformas.length > 0) {
-                const platformQueries = plataformas.map(plataforma_id => 
+                const platformQueries = plataformas.map(plataforma_id =>
                     pool.query(
                         'INSERT INTO productos_plataformas (producto_id, plataforma_id) VALUES ($1, $2)',
                         [id, plataforma_id]
@@ -148,11 +145,10 @@ const updateProduct = async (req, res) => {
             }
         }
 
-        // Actualizar detalles en MongoDB
         const db = getDB();
         await db.collection('productos_detalle').updateOne(
             { producto_id: parseInt(id) },
-            { 
+            {
                 $set: {
                     descripcion: descripcion || '',
                     especificaciones: especificaciones || {},
@@ -177,7 +173,6 @@ const deleteProduct = async (req, res) => {
     try {
         const { id } = req.params;
 
-        // Soft delete en PostgreSQL
         const deletedProduct = await pool.query(
             'UPDATE productos SET activo = false WHERE id = $1 RETURNING *',
             [id]
@@ -196,4 +191,9 @@ const deleteProduct = async (req, res) => {
     }
 };
 
-module.exports = { getAllProducts, createProduct, updateProduct, deleteProduct };
+module.exports = {
+    getAllProducts,
+    createProduct,
+    updateProduct,
+    deleteProduct
+};

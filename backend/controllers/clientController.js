@@ -46,7 +46,6 @@ const createClient = async (req, res) => {
 
         const db = getDB();
 
-        // Verificar si ya existe
         const existingClient = await db.collection('clientes').findOne({
             $or: [{ cedula }, { email }]
         });
@@ -55,7 +54,6 @@ const createClient = async (req, res) => {
             return res.status(400).json({ error: 'Ya existe un cliente con esa cédula o email' });
         }
 
-        // Generar ID único
         const clienteId = `CLI-${Date.now()}`;
 
         const newClient = {
@@ -86,8 +84,6 @@ const getClientHistory = async (req, res) => {
         const { cliente_id } = req.params;
 
         const db = getDB();
-        
-        // Obtener historial de compras
         const historial = await db.collection('historial_clientes')
             .find({ cliente_id })
             .sort({ fecha: -1 })
@@ -112,11 +108,11 @@ const updateClient = async (req, res) => {
 
         const result = await db.collection('clientes').updateOne(
             { cliente_id },
-            { 
-                $set: { 
-                    nombre, 
-                    telefono, 
-                    email, 
+            {
+                $set: {
+                    nombre,
+                    telefono,
+                    email,
                     direccion,
                     fecha_actualizacion: new Date()
                 }
@@ -136,4 +132,9 @@ const updateClient = async (req, res) => {
     }
 };
 
-module.exports = { getAllClients, createClient, getClientHistory, updateClient };
+module.exports = {
+    getAllClients,
+    createClient,
+    getClientHistory,
+    updateClient
+};

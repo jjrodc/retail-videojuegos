@@ -1,35 +1,27 @@
 const pool = require('../config/postgres');
-const { getDB } = require('../config/mongodb');
 
 const getSalesReport = async (req, res) => {
     try {
         const { fecha_inicio, fecha_fin, sucursal_id, tipo = 'diario' } = req.query;
         const userSucursalId = req.user.sucursal_id;
+        const finalSucursalId = req.user.rol_nombre === 'admin' ? (sucursal_id || userSucursalId) : userSucursalId;
 
-        // Determinar sucursal final
-        const finalSucursalId = req.user.rol_nombre === 'admin' ? 
-            (sucursal_id || userSucursalId) : userSucursalId;
-
-        let groupBy, dateFormat;
+        let groupBy;
         switch (tipo) {
             case 'diario':
                 groupBy = 'DATE(v.fecha)';
-                dateFormat = 'YYYY-MM-DD';
                 break;
             case 'semanal':
-                groupBy = 'DATE_TRUNC(\'week\', v.fecha)';
-                dateFormat = 'YYYY-"W"WW';
+                groupBy = `DATE_TRUNC('week', v.fecha)`;
                 break;
             case 'mensual':
-                groupBy = 'DATE_TRUNC(\'month\', v.fecha)';
-                dateFormat = 'YYYY-MM';
+                groupBy = `DATE_TRUNC('month', v.fecha)`;
                 break;
             default:
                 groupBy = 'DATE(v.fecha)';
-                dateFormat = 'YYYY-MM-DD';
         }
 
-        const query = `
+        const ventasQuery = `
             SELECT 
                 ${groupBy} as periodo,
                 COUNT(*) as total_ventas,
@@ -44,10 +36,9 @@ const getSalesReport = async (req, res) => {
             ORDER BY periodo DESC
         `;
 
-        const result = await pool.query(query, [finalSucursalId, fecha_inicio, fecha_fin]);
+        const ventas = await pool.query(ventasQuery, [finalSucursalId, fecha_inicio, fecha_fin]);
 
-        // Productos más vendidos
-        const topProductsQuery = `
+        const topProductosQuery = `
             SELECT 
                 p.nombre as producto,
                 pl.nombre as plataforma,
@@ -64,15 +55,15 @@ const getSalesReport = async (req, res) => {
             LIMIT 10
         `;
 
-        const topProducts = await pool.query(topProductsQuery, [finalSucursalId, fecha_inicio, fecha_fin]);
+        const topProductos = await pool.query(topProductosQuery, [finalSucursalId, fecha_inicio, fecha_fin]);
 
         res.json({
             success: true,
             reporte: {
                 periodo: { inicio: fecha_inicio, fin: fecha_fin },
                 tipo,
-                ventas_por_periodo: result.rows,
-                productos_mas_vendidos: topProducts.rows
+                ventas_por_periodo: ventas.rows,
+                productos_mas_vendidos: topProductos.rows
             }
         });
     } catch (error) {
@@ -84,11 +75,8 @@ const getInventoryReport = async (req, res) => {
     try {
         const { sucursal_id } = req.query;
         const userSucursalId = req.user.sucursal_id;
+        const finalSucursalId = req.user.rol_nombre === 'admin' ? (sucursal_id || userSucursalId) : userSucursalId;
 
-        const finalSucursalId = req.user.rol_nombre === 'admin' ? 
-            (sucursal_id || userSucursalId) : userSucursalId;
-
-        // Productos con stock bajo
         const stockBajoQuery = `
             SELECT 
                 p.nombre as producto,
@@ -103,10 +91,8 @@ const getInventoryReport = async (req, res) => {
             AND i.stock_actual <= i.stock_minimo
             ORDER BY i.stock_actual ASC
         `;
-
         const stockBajo = await pool.query(stockBajoQuery, [finalSucursalId]);
 
-        // Productos sin stock
         const sinStockQuery = `
             SELECT 
                 p.nombre as producto,
@@ -120,10 +106,8 @@ const getInventoryReport = async (req, res) => {
             AND i.stock_actual = 0
             ORDER BY p.nombre
         `;
-
         const sinStock = await pool.query(sinStockQuery, [finalSucursalId]);
 
-        // Valor total del inventario
         const valorInventarioQuery = `
             SELECT 
                 SUM(i.stock_actual * p.precio) as valor_total,
@@ -132,7 +116,6 @@ const getInventoryReport = async (req, res) => {
             JOIN productos p ON i.producto_id = p.id
             WHERE i.sucursal_id = $1
         `;
-
         const valorInventario = await pool.query(valorInventarioQuery, [finalSucursalId]);
 
         res.json({
@@ -157,7 +140,6 @@ const getDashboard = async (req, res) => {
         const userSucursalId = req.user.sucursal_id;
         const hoy = new Date().toISOString().split('T')[0];
 
-        // Ventas del día
         const ventasHoyQuery = `
             SELECT 
                 COUNT(*) as total_ventas,
@@ -166,10 +148,8 @@ const getDashboard = async (req, res) => {
             WHERE sucursal_id = $1 
             AND DATE(fecha) = $2
         `;
-
         const ventasHoy = await pool.query(ventasHoyQuery, [userSucursalId, hoy]);
 
-        // Productos con stock bajo
         const stockBajoQuery = `
             SELECT COUNT(*) as productos_stock_bajo
             FROM inventario i
@@ -178,10 +158,8 @@ const getDashboard = async (req, res) => {
             AND i.stock_actual <= i.stock_minimo
             AND p.activo = true
         `;
-
         const stockBajo = await pool.query(stockBajoQuery, [userSucursalId]);
 
-        // Ventas de la semana
         const ventasSemanaQuery = `
             SELECT 
                 DATE(fecha) as fecha,
@@ -193,10 +171,8 @@ const getDashboard = async (req, res) => {
             GROUP BY DATE(fecha)
             ORDER BY fecha
         `;
-
         const ventasSemana = await pool.query(ventasSemanaQuery, [userSucursalId]);
 
-        // Top 5 productos más vendidos del mes
         const topProductosQuery = `
             SELECT 
                 p.nombre as producto,
@@ -212,7 +188,6 @@ const getDashboard = async (req, res) => {
             ORDER BY cantidad_vendida DESC
             LIMIT 5
         `;
-
         const topProductos = await pool.query(topProductosQuery, [userSucursalId]);
 
         res.json({
@@ -229,4 +204,8 @@ const getDashboard = async (req, res) => {
     }
 };
 
-module.exports = { getSalesReport, getInventoryReport, getDashboard };
+module.exports = {
+    getSalesReport,
+    getInventoryReport,
+    getDashboard
+};
