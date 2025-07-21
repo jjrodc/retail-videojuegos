@@ -1,0 +1,310 @@
+/* General Styling */
+:root {
+    --primary-color: #3b82f6; /* blue-500 */
+    --danger-color: #ef4444; /* red-500 */
+    --success-color: #22c55e; /* green-500 */
+    --dark-bg: #1f2937; /* gray-800 */
+    --light-bg: #374151; /* gray-700 */
+    --text-color: #f3f4f6; /* gray-200 */
+    --border-color: #4b5563; /* gray-600 */
+    --font-family: 'Inter', sans-serif;
+}
+
+body {
+    font-family: var(--font-family);
+    background-color: var(--dark-bg);
+    color: var(--text-color);
+    margin: 0;
+    line-height: 1.6;
+}
+
+#app, .page {
+    height: 100vh;
+    width: 100vw;
+}
+
+.page {
+    display: none;
+}
+
+.page.active {
+    display: flex;
+}
+
+/* Login Page */
+.login-container {
+    margin: auto;
+    padding: 2.5rem;
+    background-color: var(--light-bg);
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+}
+
+.login-container h1 {
+    margin-bottom: 2rem;
+    color: white;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+    text-align: left;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 0.75rem;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    background-color: var(--dark-bg);
+    color: var(--text-color);
+    font-size: 1rem;
+    box-sizing: border-box;
+}
+
+.error-message {
+    color: var(--danger-color);
+    margin-top: 1rem;
+    display: none;
+}
+
+/* Buttons */
+.btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 1rem;
+    transition: background-color 0.2s, transform 0.1s;
+}
+.btn:hover {
+    transform: translateY(-2px);
+}
+.btn.btn-primary { background-color: var(--primary-color); color: white; }
+.btn.btn-danger { background-color: var(--danger-color); color: white; }
+.btn.btn-success { background-color: var(--success-color); color: white; }
+
+/* Dashboard Layout */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 2rem;
+    background-color: var(--light-bg);
+    height: 60px;
+    width: 100%;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 100;
+}
+
+.nav-brand {
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.nav-user {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.container {
+    display: flex;
+    margin-top: 60px; /* Navbar height */
+    height: calc(100vh - 60px);
+    width: 100%;
+}
+
+.sidebar {
+    width: 240px;
+    background-color: var(--light-bg);
+    padding-top: 1rem;
+    flex-shrink: 0;
+}
+
+.nav-menu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.nav-link {
+    display: block;
+    padding: 1rem 1.5rem;
+    color: var(--text-color);
+    text-decoration: none;
+    transition: background-color 0.2s;
+}
+
+.nav-link:hover {
+    background-color: rgba(255,255,255,0.1);
+}
+
+.nav-link.active {
+    background-color: var(--primary-color);
+    font-weight: 600;
+}
+
+.main-content {
+    flex-grow: 1;
+    padding: 2rem;
+    overflow-y: auto;
+}
+
+.content-section {
+    display: none;
+}
+
+.content-section.active {
+    display: block;
+}
+
+/* Dashboard Stats */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+}
+.stat-card {
+    background-color: var(--light-bg);
+    padding: 1.5rem;
+    border-radius: 12px;
+}
+.stat-card h3 { margin-top: 0; }
+.stat-card p { font-size: 2rem; font-weight: 700; margin-bottom: 0; }
+
+/* Tables */
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+#searchProducts, #searchPOS {
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    background-color: var(--dark-bg);
+    color: var(--text-color);
+    width: 300px;
+}
+
+.table-wrapper {
+    overflow-x: auto;
+    background-color: var(--light-bg);
+    border-radius: 8px;
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+th, td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+}
+th { font-weight: 600; }
+td.actions { display: flex; gap: 0.5rem; }
+.btn-sm { padding: 0.25rem 0.5rem; font-size: 0.875rem; }
+
+/* POS System */
+.pos-container {
+    display: flex;
+    gap: 2rem;
+    height: calc(100vh - 200px);
+}
+.pos-left, .pos-right {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+.pos-left #posProducts, .pos-right #cartItems {
+    overflow-y: auto;
+    background-color: var(--light-bg);
+    padding: 1rem;
+    border-radius: 8px;
+    flex-grow: 1;
+    margin-top: 1rem;
+}
+.product-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-color);
+    cursor: pointer;
+}
+.product-item:hover { background-color: rgba(255,255,255,0.1); }
+
+.cart-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0;
+}
+.cart-item-controls {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+.qty-input {
+    width: 50px;
+    text-align: center;
+    background-color: var(--dark-bg);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+}
+.cart-total {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color);
+    font-size: 1.25rem;
+    text-align: right;
+}
+
+/* Modal Styling */
+.modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+.modal-content {
+    background-color: var(--light-bg);
+    padding: 2rem;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 500px;
+    position: relative;
+}
+.modal-close-btn {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    background: none;
+    border: none;
+    color: var(--text-color);
+    font-size: 2rem;
+    cursor: pointer;
+}
+.hidden {
+    display: none;
+}

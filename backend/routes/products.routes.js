@@ -7,16 +7,18 @@ const {
     deleteProduct
 } = require('../controllers/productsController');
 
+const { authenticateToken, authorize } = require('../middleware/auth'); // Ajusta la ruta a tu middleware
+
 // Listar productos con detalles
 router.get('/', getAllProducts);
 
-// Crear un producto
-router.post('/', createProduct);
 
-// Actualizar producto
-router.put('/:id', updateProduct);
+// Primero autentica el token, luego autoriza solo al rol 'admin'.
+router.post('/', authenticateToken, authorize(['admin']), createProduct); 
 
-// Eliminar (soft delete)
-router.delete('/:id', deleteProduct);
+// 🔒 Actualizar producto (Ruta Protegida - solo Admin)
+router.put('/:id', authenticateToken, authorize(['admin']), updateProduct); 
 
+// 🔒 Eliminar producto (Ruta Protegida - solo Admin)
+router.delete('/:id', authenticateToken, authorize(['admin']), deleteProduct);
 module.exports = router;

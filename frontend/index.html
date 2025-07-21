@@ -1,175 +1,107 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Game Retail Dashboard</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="style.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Retail - Tienda</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px #3b82f6;
+        }
+        /* Custom scrollbar for webkit browsers */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #1f2937; }
+        ::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #6b7280; }
+    </style>
 </head>
-<body>
-    <header>
-        <nav class="navbar">
-            <div class="nav-logo"><a href="/">GAME RETAIL</a></div>
-            <div class="nav-search">
-                <input type="text" placeholder="Buscar por título..." />
-            </div>
-            <div class="nav-links">
-                <a href="#" data-plataforma="PC">PC</a>
-                <a href="#" data-plataforma="PlayStation 5">PlayStation</a>
-                <a href="#" data-plataforma="Xbox Series X">Xbox</a>
-                <a href="#" data-plataforma="Nintendo Switch">Nintendo</a>
-            </div>
-            <div class="nav-usuario" id="nav-usuario-container">
-                <a href="#" id="login-link">Iniciar Sesión</a>
-            </div>
-        </nav>
-    </header>
+<body class="bg-gray-900 text-gray-200">
 
-    <main>
-        <section class="filtros-container">
-            <select name="ordenar">
-                <option value="">Ordenar por...</option>
-                <option value="precio-asc">Precio: Más bajo a más alto</option>
-                <option value="precio-desc">Precio: Más alto a más bajo</option>
-            </select>
-            <select name="genero">
-                <option value="">Género</option>
-            </select>
-            <select name="plataforma">
-                <option value="">Plataforma</option>
-            </select>
-        </section>
+    <div id="app" class="min-h-screen">
+        <!-- Header Section -->
+        <header class="bg-gray-800/80 backdrop-blur-sm shadow-lg sticky top-0 z-50">
+            <div class="container mx-auto px-4">
+                <div class="flex items-center justify-between h-20">
+                    <a href="#" class="text-2xl font-black leading-tight">
+                        <span class="text-blue-500">GAME</span><br><span class="text-white">RETAIL</span>
+                    </a>
+                    <div class="hidden md:flex flex-1 max-w-lg mx-8">
+                        <input type="text" id="searchInput" placeholder="Buscar por título..." class="form-input w-full bg-gray-700 border-gray-600 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:ring-blue-500 focus:border-blue-500 transition">
+                    </div>
+                    <div class="flex items-center space-x-6 text-sm font-semibold">
+                        <nav class="hidden md:flex items-center space-x-4">
+                            <a href="#" class="hover:text-blue-400 transition">PC</a>
+                            <a href="#" class="hover:text-blue-400 transition">PlayStation</a>
+                            <a href="#" class="hover:text-blue-400 transition">Xbox</a>
+                            <a href="#" class="hover:text-blue-400 transition">Nintendo</a>
+                        </nav>
+                        <button id="cartButton" class="relative hover:text-blue-400 transition">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                            <span id="cartCount" class="absolute -top-2 -right-2 bg-blue-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">0</span>
+                        </button>
+                        <a href="admin.html" class="ml-2 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition">
+                            Iniciar Sesión
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </header>
 
-        <div id="tienda-container"></div>
-        <div id="paginacion-container"></div>
-    </main>
+        <!-- Main Content -->
+        <main class="container mx-auto px-4 py-8">
+            <section id="filters" class="mb-8">
+                <div class="bg-gray-800 p-4 rounded-lg shadow-md">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <select id="sortFilter" class="form-select w-full bg-gray-700 border-gray-600 rounded-lg px-4 py-2 text-white">
+                            <option value="default">Ordenar por...</option>
+                            <option value="price-asc">Precio: Menor a Mayor</option>
+                            <option value="price-desc">Precio: Mayor a Menor</option>
+                            <option value="name-asc">Nombre: A-Z</option>
+                        </select>
+                        <select id="genreFilter" class="form-select w-full bg-gray-700 border-gray-600 rounded-lg px-4 py-2 text-white">
+                            <option value="all">Género: Todos</option>
+                        </select>
+                        <select id="platformFilter" class="form-select w-full bg-gray-700 border-gray-600 rounded-lg px-4 py-2 text-white">
+                            <option value="all">Plataforma: Todas</option>
+                        </select>
+                    </div>
+                </div>
+            </section>
 
-    <!-- Modal Login -->
-    <div id="login-modal" class="modal-oculto">
-        <div class="modal-contenido">
-            <span class="cerrar-modal">&times;</span>
-            <h2>Inicia Sesión</h2>
-            <form id="login-form">
-                <input type="text" id="login-username" placeholder="Nombre de Usuario" required />
-                <input type="password" id="login-password" placeholder="Contraseña" required />
-                <button type="submit">Entrar</button>
-                <p id="login-error" class="error-mensaje"></p>
-            </form>
-            <p class="switch-form-link">¿No tienes cuenta? <a href="#" id="show-register-link">Regístrate</a></p>
+            <section id="product-grid">
+                <div id="productGridContainer" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                    <!-- Product cards will be loaded here by JS -->
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Shopping Cart Modal -->
+    <div id="cartModal" class="fixed inset-0 bg-black bg-opacity-70 z-50 hidden flex justify-end">
+        <div class="w-full max-w-md h-full bg-gray-800 shadow-xl flex flex-col">
+            <div class="flex justify-between items-center p-4 border-b border-gray-700">
+                <h2 class="text-xl font-bold">Carrito de Compras</h2>
+                <button id="closeCartButton" class="text-gray-400 hover:text-white">&times;</button>
+            </div>
+            <div id="cartModalBody" class="p-4 flex-grow overflow-y-auto">
+                <!-- Cart items will be loaded here -->
+            </div>
+            <div class="p-4 border-t border-gray-700">
+                <div class="flex justify-between items-center font-bold text-lg mb-4">
+                    <span>Total:</span>
+                    <span id="cartModalTotal">$0.00</span>
+                </div>
+                <button class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-bold">Proceder al Pago</button>
+            </div>
         </div>
     </div>
 
-    <!-- Modal Registro -->
-    <div id="register-modal" class="modal-oculto">
-        <div class="modal-contenido">
-            <span class="cerrar-modal">&times;</span>
-            <h2>Crear Cuenta</h2>
-            <form id="register-form">
-                <input type="text" id="register-nombre" placeholder="Nombre Completo" required />
-                <input type="text" id="register-username" placeholder="Nombre de Usuario" required />
-                <input type="password" id="register-password" placeholder="Contraseña" required />
-                <input type="number" id="register-rol_id" placeholder="ID Rol (ej. 3 para cliente)" required />
-                <input type="number" id="register-sucursal_id" placeholder="ID Sucursal (ej. 1)" required />
-                <button type="submit">Registrarse</button>
-                <p id="register-error" class="error-mensaje"></p>
-            </form>
-            <p class="switch-form-link">¿Ya tienes cuenta? <a href="#" id="show-login-link">Inicia Sesión</a></p>
-        </div>
-    </div>
-
-    <script>
-      // Variables DOM
-      const loginModal = document.getElementById('login-modal');
-      const registerModal = document.getElementById('register-modal');
-      const loginLink = document.getElementById('login-link');
-      const showRegisterLink = document.getElementById('show-register-link');
-      const showLoginLink = document.getElementById('show-login-link');
-      const closeModalButtons = document.querySelectorAll('.cerrar-modal');
-
-      // Mostrar/Ocultar modales
-      loginLink.addEventListener('click', e => {
-        e.preventDefault();
-        loginModal.classList.remove('modal-oculto');
-      });
-
-      showRegisterLink.addEventListener('click', e => {
-        e.preventDefault();
-        loginModal.classList.add('modal-oculto');
-        registerModal.classList.remove('modal-oculto');
-      });
-
-      showLoginLink.addEventListener('click', e => {
-        e.preventDefault();
-        registerModal.classList.add('modal-oculto');
-        loginModal.classList.remove('modal-oculto');
-      });
-
-      closeModalButtons.forEach(btn => {
-        btn.addEventListener('click', () => {
-          loginModal.classList.add('modal-oculto');
-          registerModal.classList.add('modal-oculto');
-        });
-      });
-
-      // Función para login
-      document.getElementById('login-form').addEventListener('submit', async e => {
-        e.preventDefault();
-
-        const username = document.getElementById('login-username').value.trim();
-        const password = document.getElementById('login-password').value;
-
-        try {
-          const res = await fetch('/api/auth/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, password }),
-          });
-
-          const data = await res.json();
-
-          if (res.ok) {
-            alert('Login exitoso. Token: ' + data.token);
-            loginModal.classList.add('modal-oculto');
-            // Aquí puedes guardar el token en localStorage/sessionStorage y cambiar UI
-          } else {
-            document.getElementById('login-error').textContent = data.error || 'Error desconocido';
-          }
-        } catch (error) {
-          document.getElementById('login-error').textContent = 'Error en la conexión';
-        }
-      });
-
-      // Función para registro
-      document.getElementById('register-form').addEventListener('submit', async e => {
-        e.preventDefault();
-
-        const nombre = document.getElementById('register-nombre').value.trim();
-        const username = document.getElementById('register-username').value.trim();
-        const password = document.getElementById('register-password').value;
-        const rol_id = parseInt(document.getElementById('register-rol_id').value, 10);
-        const sucursal_id = parseInt(document.getElementById('register-sucursal_id').value, 10);
-
-        try {
-          const res = await fetch('/api/auth/register', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ nombre, username, password, rol_id, sucursal_id }),
-          });
-
-          const data = await res.json();
-
-          if (res.ok) {
-            alert('Registro exitoso. Ya puedes iniciar sesión.');
-            registerModal.classList.add('modal-oculto');
-            loginModal.classList.remove('modal-oculto');
-          } else {
-            document.getElementById('register-error').textContent = data.error || 'Error desconocido';
-          }
-        } catch (error) {
-          document.getElementById('register-error').textContent = 'Error en la conexión';
-        }
-      });
-    </script>
+    <script src="js/storefront-app.js"></script>
 </body>
 </html>

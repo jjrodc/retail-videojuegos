@@ -32,6 +32,18 @@ const getAllProducts = async (req, res) => {
             paramCount++;
         }
 
+        if (plataforma) {
+            // Esta condición filtra los productos para que solo se incluyan aquellos
+            // que están asociados con la plataforma especificada.
+            query += ` AND p.id IN (
+                SELECT pp.producto_id 
+                FROM productos_plataformas pp 
+                JOIN plataformas pl ON pp.plataforma_id = pl.id 
+                WHERE pl.nombre = $${paramCount++}
+            )`;
+            params.push(plataforma);
+        }
+
         query += ` GROUP BY p.id, c.nombre, d.nombre ORDER BY p.nombre LIMIT $${paramCount} OFFSET $${paramCount + 1}`;
         params.push(limit, offset);
 
